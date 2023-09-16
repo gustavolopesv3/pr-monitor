@@ -42,6 +42,15 @@ export default function Home() {
 
   const session = useSession();
 
+  function verfiyIfISLogged() {
+    if(session.status !== 'loading' && session.status !== 'authenticated') {
+      // redirec to login
+      window.location.href = '/api/auth/signin';
+    }
+  }
+
+  useEffect(() => {verfiyIfISLogged()}, [session]);
+
   async function getData() {
     if(session.status !== 'authenticated') return;
     // @ts-ignore
