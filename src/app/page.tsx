@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { groupBy, map, orderBy, set } from "lodash";
 import Image from "next/image";
 import { Badge } from "@/components/badge";
-import moment from 'moment'
+import moment from "moment";
 
 type Label = {
   id: number;
@@ -24,7 +24,7 @@ type PullRequestItem = {
   updatedAt: string;
   state: string;
   daysOponed: number;
-  labels: Label[]
+  labels: Label[];
   user: {
     login: string;
     avatar_url: string;
@@ -43,16 +43,18 @@ export default function Home() {
   const session = useSession();
 
   function verfiyIfISLogged() {
-    if(session.status !== 'loading' && session.status !== 'authenticated') {
+    if (session.status !== "loading" && session.status !== "authenticated") {
       // redirec to login
-      window.location.href = '/api/auth/signin';
+      window.location.href = "/api/auth/signin";
     }
   }
 
-  useEffect(() => {verfiyIfISLogged()}, [session]);
+  useEffect(() => {
+    verfiyIfISLogged();
+  }, [session]);
 
   async function getData() {
-    if(session.status !== 'authenticated') return;
+    if (session.status !== "authenticated") return;
     // @ts-ignore
     const token = session?.data?.accessToken?.accessToken;
     const resOrgs = await fetch("https://api.github.com/user/orgs", {
@@ -60,7 +62,6 @@ export default function Home() {
         Authorization: `token ${token}`,
       },
     }).then((res) => res.json());
-
 
     const resPullOrgs = await Promise.all(
       resOrgs.map((org: any) =>
@@ -75,8 +76,8 @@ export default function Home() {
       )
     );
 
-    const allPRs = map(resPullOrgs, (item) => item.items).flat()
-    const groupedPRs = groupBy(allPRs, 'repository_url');
+    const allPRs = map(resPullOrgs, (item) => item.items).flat();
+    const groupedPRs = groupBy(allPRs, "repository_url");
 
     const data = map(groupedPRs, (value, key) => {
       const repo = key.split("/").slice(-1)[0];
@@ -85,9 +86,9 @@ export default function Home() {
         return {
           title: item.title,
           url: item.html_url,
-          createdAt: moment(item.created_at).format('DD/MM/YYYY'),
-          updatedAt: moment(item.updated_at).format('DD/MM/YYYY'),
-          daysOponed: moment().diff(moment(item.updated_at), 'days'),
+          createdAt: moment(item.created_at).format("DD/MM/YYYY"),
+          updatedAt: moment(item.updated_at).format("DD/MM/YYYY"),
+          daysOponed: moment().diff(moment(item.updated_at), "days"),
           state: item.state,
           labels: item.labels,
           user: {
@@ -95,12 +96,11 @@ export default function Home() {
             avatar_url: item.user.avatar_url,
           },
         };
-      }
-      );
+      });
       return {
         org,
         repo,
-        items: orderBy(items, ['daysOponed'], ['desc'])
+        items: orderBy(items, ["daysOponed"], ["desc"]),
       };
     });
 
@@ -123,11 +123,14 @@ export default function Home() {
 
   return (
     <div>
-      <div >
+      <div>
         {pullRequest.map((organization, orgIndex) => (
-          <div key={orgIndex} className="bg-gray-900 rounded-lg shadow-md p-4 m-10">
+          <div
+            key={orgIndex}
+            className="bg-gray-900 rounded-lg shadow-md p-4 m-10"
+          >
             <div className="mb-4">
-              <h2 className="text-xl font-semibold text-gray-200" >
+              <h2 className="text-xl font-semibold text-gray-200">
                 Organização: {organization.org}
               </h2>
               <p className="text-gray-200">Repositório: {organization.repo}</p>
@@ -135,19 +138,26 @@ export default function Home() {
             {organization.items.map((item, itemIndex) => (
               <div
                 key={itemIndex}
-                className="border-t border-gray-200 pt-4 mt-4 "
+                className="border-t border-gray-200 pt-4 mt-4"
               >
-                <div className="flex gap-2">
-                {
-                  map(item.labels, (label, index) => (
-                    <Badge key={index} hexadecimal={label.color} name={label.name} />
-                  ))
-                }
-                </div>
-                <h3 className="text-lg font-semibold text-gray-200">Título: {item.title}</h3>
-                <p className="text-gray-200">Dias: <span className={getColorDaysOpen(item.daysOponed)}>{item.daysOponed}</span></p>
+                <h3 className="text-lg font-semibold text-gray-200 flex gap-2">
+                  Título: {item.title}{" "}
+                  {map(item.labels, (label, index) => (
+                    <Badge
+                      key={index}
+                      hexadecimal={label.color}
+                      name={label.name}
+                    />
+                  ))}
+                </h3>
                 <p className="text-gray-200">
-                  Link: <a href={item.url}>{item.url}</a>
+                  Dias:{" "}
+                  <span className={getColorDaysOpen(item.daysOponed)}>
+                    {item.daysOponed}
+                  </span>
+                </p>
+                <p className="text-gray-200">
+                  Link: <a className="text-blue-500 font-bold" href={item.url} target="_blank">{item.url}</a>
                 </p>
                 <p className="text-gray-200">
                   Data de criação: {item.createdAt}
@@ -156,7 +166,7 @@ export default function Home() {
                   Última atualização: {item.updatedAt}
                 </p>
                 <div className="flex items-center mt-2 flex-row">
-                <Image
+                  <Image
                     src={item.user.avatar_url}
                     alt="avatar user"
                     width={30}
@@ -166,7 +176,6 @@ export default function Home() {
                   <p className="text-gray-100 mr-2">
                     Responsável: {item.user.login}
                   </p>
-                 
                 </div>
               </div>
             ))}
