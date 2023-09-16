@@ -9,7 +9,7 @@ const handler = NextAuth({
           clientSecret: String(process.env.GITHUB_SECRET),
           authorization: {
             params: {
-              scope: "read:user user:email repo pull_request",
+              scope: "read:user user:email repo",
             },
           },
           
